@@ -58,20 +58,20 @@ export default function BuyerMenu() {
       <h1 className="text-2xl font-bold text-blue-700 mb-2">
         Price List
       </h1>
-      <p className="text-gray-500 mb-6">
+      <p className="text-gray-600 mb-6">
         Select items and quantity to place your order
       </p>
 
       <div className="w-full max-w-lg bg-white rounded-lg shadow-md mb-6">
         <div className="bg-blue-700 text-white p-3 rounded-t-lg font-bold flex justify-between">
-          <span>Item</span>
-          <span>Price/kg</span>
-          <span>Quantity</span>
+          <span className="w-24">Item</span>
+          <span className="w-24">Price/kg</span>
+          <span className="w-16 text-center">Quantity</span>
           <span>Action</span>
         </div>
 
         {menuItems.length === 0 && (
-          <p className="p-4 text-gray-400 text-center">
+          <p className="p-4 text-gray-600 text-center font-medium">
             No items available yet. Manager must add items first.
           </p>
         )}
@@ -81,7 +81,9 @@ export default function BuyerMenu() {
             key={index}
             className="flex justify-between items-center p-3 border-b"
           >
-            <span className="capitalize font-medium w-24">{item.name}</span>
+            <span className="capitalize font-bold w-24 text-gray-900">
+              {item.name}
+            </span>
             <span className="text-green-700 font-bold w-24">
               {item.price} Birr/kg
             </span>
@@ -92,11 +94,11 @@ export default function BuyerMenu() {
               onChange={(e) =>
                 handleQuantityChange(item.name, Number(e.target.value))
               }
-              className="w-16 p-1 border rounded text-center"
+              className="w-16 p-1 border border-gray-400 rounded text-center text-gray-900 font-bold"
             />
             <button
               onClick={() => handleAddToOrder(item)}
-              className="bg-green-700 text-white px-3 py-1 rounded hover:bg-green-800 text-sm"
+              className="bg-green-700 text-white px-3 py-1 rounded hover:bg-green-800 text-sm font-medium"
             >
               Add to Order
             </button>
@@ -106,12 +108,12 @@ export default function BuyerMenu() {
 
       {order.length > 0 && (
         <div className="w-full max-w-lg bg-white rounded-lg shadow-md p-4">
-          <h2 className="text-lg font-bold text-gray-700 mb-3">
+          <h2 className="text-lg font-bold text-gray-900 mb-3">
             Your Order
           </h2>
           {order.map((item, index) => (
-            <div key={index} className="flex justify-between mb-2">
-              <span className="capitalize">{item.name}</span>
+            <div key={index} className="flex justify-between mb-2 text-gray-900">
+              <span className="capitalize font-medium">{item.name}</span>
               <span>
                 {item.quantity} kg x {item.price} Birr ={" "}
                 <strong>{item.quantity * item.price} Birr</strong>
@@ -124,7 +126,7 @@ export default function BuyerMenu() {
           </div>
           <button
             onClick={() => alert("Order placed successfully!")}
-            className="w-full mt-4 bg-blue-700 text-white p-2 rounded hover:bg-blue-800"
+            className="w-full mt-4 bg-blue-700 text-white p-2 rounded hover:bg-blue-800 font-bold"
           >
             Place Order
           </button>

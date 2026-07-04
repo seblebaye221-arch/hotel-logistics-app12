@@ -125,8 +125,19 @@ export default function BuyerMenu() {
             <span>{grandTotal} Birr</span>
           </div>
           <button
-            onClick={() => alert("Order placed successfully!")}
-            className="w-full mt-4 bg-blue-700 text-white p-2 rounded hover:bg-blue-800 font-bold"
+onClick={() => {
+  const newOrder = {
+    id: Date.now().toString(),
+    date: new Date().toLocaleDateString(),
+    items: order,
+    total: grandTotal,
+  };
+  const existing = localStorage.getItem("orderHistory");
+  const history = existing ? JSON.parse(existing) : [];
+  localStorage.setItem("orderHistory", JSON.stringify([newOrder, ...history]));
+  alert("Order placed successfully!");
+  setOrder([]);
+}}            className="w-full mt-4 bg-blue-700 text-white p-2 rounded hover:bg-blue-800 font-bold"
           >
             Place Order
           </button>

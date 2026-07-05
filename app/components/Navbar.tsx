@@ -6,14 +6,27 @@ export default function Navbar() {
       <span className="font-bold text-lg mr-4">
         Hotel & Logistics
       </span>
-      <Link href="/" className="hover:underline">Home</Link>
-      <Link href="/hotel/login" className="hover:underline">Hotel Login</Link>
-      <Link href="/logistics/login" className="hover:underline">Logistics Login</Link>
-      <Link href="/logistics/add" className="hover:underline">Add Item</Link>
-      <Link href="/menu" className="hover:underline text-yellow-300 font-bold">Price List</Link>
-      <Link href="/inventory" className="hover:underline text-red-300 font-bold">Inventory</Link>
-      <Link href="/orders" className="hover:underline text-green-300 font-bold">Order History</Link>
-      <Link href="/suppliers" className="hover:underline text-pink-300 font-bold">Suppliers</Link>
+      <Link href="/" className="hover:underline">
+        Home
+      </Link>
+      <Link href="/hotel/login" className="hover:underline">
+        Hotel Login
+      </Link>
+      <Link href="/logistics/login" className="hover:underline">
+        Logistics Login
+      </Link>
+      <Link href="/logistics/add" className="hover:underline">
+        Add Item
+      </Link>
+      <Link href="/menu" className="hover:underline text-yellow-300 font-bold">
+        Price List
+      </Link>
+      <Link href="/inventory" className="hover:underline text-red-300 font-bold">
+        Inventory
+      </Link>
+      <Link href="/orders" className="hover:underline text-green-300 font-bold">
+        Order History
+      </Link>
     </nav>
   );
 }

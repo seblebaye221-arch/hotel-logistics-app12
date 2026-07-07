@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 type MenuItem = {
   name: string;
   price: number;
+  quantity: number;
 };
 
 type OrderItem = {
@@ -29,6 +30,7 @@ export default function BuyerMenu() {
       setMenuItems(items.map((item: any) => ({
         name: item.name,
         price: item.price,
+        quantity: item.quantity,
       })));
     }
   }, []);
@@ -39,12 +41,22 @@ export default function BuyerMenu() {
 
   const handleAddToOrder = (item: MenuItem) => {
     const qty = quantities[item.name] || 1;
+
+    // Check if enough stock available
+    if (qty > item.quantity) {
+      alert(`Sorry! Only ${item.quantity} kg of ${item.name} available in stock.`);
+      return;
+    }
+
     const existing = order.find((o) => o.name === item.name);
     if (existing) {
+      const newQty = existing.quantity + qty;
+      if (newQty > item.quantity) {
+        alert(`Sorry! Only ${item.quantity} kg of ${item.name} available in stock.`);
+        return;
+      }
       setOrder(order.map((o) =>
-        o.name === item.name
-          ? { ...o, quantity: o.quantity + qty }
-          : o
+        o.name === item.name ? { ...o, quantity: newQty } : o
       ));
     } else {
       setOrder([...order, { ...item, quantity: qty }]);
@@ -59,12 +71,57 @@ export default function BuyerMenu() {
     ? Math.min(...menuItems.map((item) => item.price))
     : null;
 
-  // Filter items based on search and max price
   const filteredItems = menuItems.filter((item) => {
     const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase());
     const matchesPrice = maxPrice === "" || item.price <= Number(maxPrice);
     return matchesSearch && matchesPrice;
   });
+
+  const handlePlaceOrder = () => {
+    if (order.length === 0) {
+      alert("Your order is empty!");
+      return;
+    }
+
+    // Reduce stock in localStorage
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const allItems = JSON.parse(saved);
+      const updatedItems = allItems.map((item: any) => {
+        const ordered = order.find((o) => o.name === item.name);
+        if (ordered) {
+          return { ...item, quantity: item.quantity - ordered.quantity };
+        }
+        return item;
+      });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedItems));
+    }
+
+    // Save order to history
+    const newOrder = {
+      id: Date.now().toString(),
+      date: new Date().toLocaleDateString(),
+      items: order,
+      total: grandTotal,
+    };
+    const existing = localStorage.getItem("orderHistory");
+    const history = existing ? JSON.parse(existing) : [];
+    localStorage.setItem("orderHistory", JSON.stringify([newOrder, ...history]));
+
+    alert("Order placed successfully! Stock has been updated.");
+    setOrder([]);
+
+    // Refresh menu items to show updated stock
+    const updatedSaved = localStorage.getItem(STORAGE_KEY);
+    if (updatedSaved) {
+      const items = JSON.parse(updatedSaved);
+      setMenuItems(items.map((item: any) => ({
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+      })));
+    }
+  };
 
   return (
     <main className="flex min-h-screen flex-col items-center p-8 bg-gray-50">
@@ -75,7 +132,7 @@ export default function BuyerMenu() {
         Search and order items from our supply list
       </p>
 
-      {/* Search & Filter Bar */}
+      {/* Search & Filter */}
       <div className="w-full max-w-lg bg-white p-4 rounded-lg shadow-md mb-4 flex gap-3">
         <div className="flex-1">
           <label className="block text-xs font-medium text-gray-600 mb-1">
@@ -104,7 +161,7 @@ export default function BuyerMenu() {
         <div className="flex items-end">
           <button
             onClick={() => { setSearch(""); setMaxPrice(""); }}
-            className="bg-gray-500 text-white px-3 py-2 rounded hover:bg-gray-600 text-sm font-medium"
+            className="bg-gray-500 text-white px-3 py-2 rounded hover:bg-gray-600 text-sm"
           >
             Clear
           </button>
@@ -114,63 +171,80 @@ export default function BuyerMenu() {
       {/* Results count */}
       <div className="w-full max-w-lg mb-2">
         <p className="text-gray-600 text-sm">
-          Showing <strong>{filteredItems.length}</strong> of <strong>{menuItems.length}</strong> items
-          {search && <span> matching "<strong>{search}</strong>"</span>}
-          {maxPrice && <span> under <strong>{maxPrice} Birr/kg</strong></span>}
+          Showing <strong>{filteredItems.length}</strong> of{" "}
+          <strong>{menuItems.length}</strong> items
         </p>
       </div>
 
       {/* Price List Table */}
       <div className="w-full max-w-lg bg-white rounded-lg shadow-md mb-6">
-        <div className="bg-blue-700 text-white p-3 rounded-t-lg font-bold flex justify-between">
-          <span className="w-28">Item</span>
-          <span className="w-28">Price/kg</span>
-          <span className="w-16 text-center">Qty</span>
+        <div className="bg-blue-700 text-white p-3 rounded-t-lg font-bold grid grid-cols-5 text-center text-sm">
+          <span>Item</span>
+          <span>Price/kg</span>
+          <span>Stock</span>
+          <span>Order Qty</span>
           <span>Action</span>
         </div>
 
         {filteredItems.length === 0 && (
           <p className="p-4 text-gray-600 text-center font-medium">
-            No items found matching your search.
+            No items found.
           </p>
         )}
 
         {filteredItems.map((item, index) => {
           const isBestDeal = item.price === minPrice;
+          const isLowStock = item.quantity <= 10 && item.quantity > 3;
+          const isCritical = item.quantity <= 3;
           return (
             <div
               key={index}
-              className={`flex justify-between items-center p-3 border-b ${
+              className={`grid grid-cols-5 items-center p-3 border-b text-center ${
                 isBestDeal ? "bg-green-50 border-l-4 border-l-green-500" : ""
               }`}
             >
-              <div className="w-28">
-                <span className="capitalize font-bold text-gray-900">
+              <div>
+                <span className="capitalize font-bold text-gray-900 text-sm">
                   {item.name}
                 </span>
                 {isBestDeal && (
-                  <span className="ml-1 text-xs bg-green-500 text-white px-1 py-0.5 rounded font-bold">
+                  <span className="block text-xs bg-green-500 text-white px-1 rounded font-bold">
                     Best Deal!
                   </span>
                 )}
               </div>
-              <span className="text-green-700 font-bold w-28">
-                {item.price} Birr/kg
+              <span className="text-green-700 font-bold text-sm">
+                {item.price} Birr
+              </span>
+              <span className={`font-bold text-sm ${
+                isCritical ? "text-red-600" :
+                isLowStock ? "text-orange-600" :
+                "text-gray-900"
+              }`}>
+                {item.quantity} kg
+                {isCritical && <span className="block text-xs">Critical!</span>}
+                {isLowStock && <span className="block text-xs">Low!</span>}
               </span>
               <input
                 type="number"
                 min="1"
+                max={item.quantity}
                 defaultValue="1"
                 onChange={(e) =>
                   handleQuantityChange(item.name, Number(e.target.value))
                 }
-                className="w-16 p-1 border border-gray-400 rounded text-center text-gray-900 font-bold"
+                className="w-14 p-1 border border-gray-400 rounded text-center text-gray-900 font-bold mx-auto"
               />
               <button
                 onClick={() => handleAddToOrder(item)}
-                className="bg-green-700 text-white px-3 py-1 rounded hover:bg-green-800 text-sm font-medium"
+                disabled={item.quantity === 0}
+                className={`px-2 py-1 rounded text-white text-xs font-medium ${
+                  item.quantity === 0
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-green-700 hover:bg-green-800"
+                }`}
               >
-                Add to Order
+                {item.quantity === 0 ? "Out of Stock" : "Add to Order"}
               </button>
             </div>
           );
@@ -197,22 +271,10 @@ export default function BuyerMenu() {
             <span>{grandTotal} Birr</span>
           </div>
           <button
-            onClick={() => {
-              const newOrder = {
-                id: Date.now().toString(),
-                date: new Date().toLocaleDateString(),
-                items: order,
-                total: grandTotal,
-              };
-              const existing = localStorage.getItem("orderHistory");
-              const history = existing ? JSON.parse(existing) : [];
-              localStorage.setItem("orderHistory", JSON.stringify([newOrder, ...history]));
-              alert("Order placed successfully!");
-              setOrder([]);
-            }}
+            onClick={handlePlaceOrder}
             className="w-full mt-4 bg-blue-700 text-white p-2 rounded hover:bg-blue-800 font-bold"
           >
-            Place Order
+            Place Order & Update Stock
           </button>
         </div>
       )}

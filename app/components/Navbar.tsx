@@ -17,6 +17,7 @@ export default function Navbar() {
       <Link href="/analytics" className="hover:underline text-cyan-300 font-bold">Analytics</Link>
       <Link href="/compare" className="hover:underline text-orange-300 font-bold">Compare</Link>
       <Link href="/delivery" className="hover:underline text-white bg-green-600 px-2 py-1 rounded font-bold">Delivery</Link>
+      <Link href="/store" className="hover:underline text-white bg-purple-600 px-2 py-1 rounded font-bold">Online Store</Link>
       <Link href="/profile" className="hover:underline text-white bg-blue-600 px-2 py-1 rounded font-bold">Profile</Link>
     </nav>
   );

@@ -1,39 +1,31 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { subscribeToInventory, InventoryItem } from "@/lib/inventory";
 
-type Item = {
-  name: string;
-  quantity: number;
-  price: number;
-};
-
-const STORAGE_KEY = "logisticsItems";
 const LOW_STOCK_LIMIT = 10;
 
 export default function Inventory() {
-  const [items, setItems] = useState<Item[]>([]);
+  const [items, setItems] = useState<InventoryItem[]>([]);
 
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      setItems(JSON.parse(saved));
-    }
+    const unsubscribe = subscribeToInventory(setItems);
+    return () => unsubscribe();
   }, []);
 
-  const getStatus = (quantity: number) => {
-    if (quantity <= 3) {
+  const getStatus = (stock: number) => {
+    if (stock <= 3) {
       return { label: "Critical!", color: "text-red-600", bg: "bg-red-100" };
-    } else if (quantity <= LOW_STOCK_LIMIT) {
+    } else if (stock <= LOW_STOCK_LIMIT) {
       return { label: "Low Stock!", color: "text-orange-600", bg: "bg-orange-100" };
     } else {
       return { label: "Good", color: "text-green-600", bg: "bg-green-100" };
     }
   };
 
-  const criticalItems = items.filter((item) => item.quantity <= 3);
+  const criticalItems = items.filter((item) => item.stock <= 3);
   const lowItems = items.filter(
-    (item) => item.quantity > 3 && item.quantity <= LOW_STOCK_LIMIT
+    (item) => item.stock > 3 && item.stock <= LOW_STOCK_LIMIT
   );
 
   return (
@@ -45,31 +37,29 @@ export default function Inventory() {
         Monitor your stock levels and get warnings when items are low
       </p>
 
-      {/* Warning Alerts */}
       {criticalItems.length > 0 && (
-        <div className="w-full max-w-lg bg-red-100 border border-red-400 text-red-700 p-4 rounded-lg mb-4">
+        <div className="w-full bg-red-100 border border-red-400 text-red-700 p-4 rounded-lg mb-4">
           <p className="font-bold text-lg">CRITICAL STOCK ALERT!</p>
-          {criticalItems.map((item, index) => (
-            <p key={index}>
-              {item.name} has only {item.quantity} kg left — Order immediately!
+          {criticalItems.map((item) => (
+            <p key={item.id}>
+              {item.name} has only {item.stock} kg left — Order immediately!
             </p>
           ))}
         </div>
       )}
 
       {lowItems.length > 0 && (
-        <div className="w-full max-w-lg bg-orange-100 border border-orange-400 text-orange-700 p-4 rounded-lg mb-4">
+        <div className="w-full bg-orange-100 border border-orange-400 text-orange-700 p-4 rounded-lg mb-4">
           <p className="font-bold text-lg">Low Stock Warning!</p>
-          {lowItems.map((item, index) => (
-            <p key={index}>
-              {item.name} is running low — {item.quantity} kg remaining.
+          {lowItems.map((item) => (
+            <p key={item.id}>
+              {item.name} is running low — {item.stock} kg remaining.
             </p>
           ))}
         </div>
       )}
 
-      {/* Inventory Table */}
-      <div className="w-full max-w-lg bg-white rounded-lg shadow-md">
+      <div className="w-full bg-white rounded-lg shadow-md">
         <div className="bg-blue-700 text-white p-3 rounded-t-lg font-bold grid grid-cols-4 text-center">
           <span>Item</span>
           <span>Stock (kg)</span>
@@ -83,18 +73,18 @@ export default function Inventory() {
           </p>
         )}
 
-        {items.map((item, index) => {
-          const status = getStatus(item.quantity);
+        {items.map((item) => {
+          const status = getStatus(item.stock);
           return (
             <div
-              key={index}
+              key={item.id}
               className={`grid grid-cols-4 text-center p-3 border-b items-center ${status.bg}`}
             >
               <span className="capitalize font-bold text-gray-900">
                 {item.name}
               </span>
               <span className="font-bold text-gray-900">
-                {item.quantity} kg
+                {item.stock} kg
               </span>
               <span className="font-bold text-gray-900">
                 {item.price} Birr
@@ -107,12 +97,11 @@ export default function Inventory() {
         })}
       </div>
 
-      {/* Summary */}
       {items.length > 0 && (
-        <div className="w-full max-w-lg mt-6 grid grid-cols-3 gap-4">
+        <div className="w-full mt-6 grid grid-cols-3 gap-4">
           <div className="bg-green-100 p-4 rounded-lg text-center">
             <p className="font-bold text-green-700 text-xl">
-              {items.filter((i) => i.quantity > LOW_STOCK_LIMIT).length}
+              {items.filter((i) => i.stock > LOW_STOCK_LIMIT).length}
             </p>
             <p className="text-green-600 text-sm font-medium">Good Stock</p>
           </div>

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Navbar from "@/app/components/Navbar";
+import { addStock } from "@/lib/inventory";
 
 type Item = {
   name: string;
@@ -65,6 +67,8 @@ export default function AddItem() {
       price: Number(price),
       bestBefore,
     };
+
+    addStock(name, Number(quantity), Number(price));
 
     setItems([...items, newItem]);
     setName("");

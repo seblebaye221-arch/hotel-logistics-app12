@@ -13,11 +13,10 @@ export default function LogisticsLogin() {
 
   const handleLogin = async () => {
     setError("");
-
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      alert("Login successful!");
-      router.push("/logistics/add");
+      localStorage.setItem("userType", "logistics");
+router.push("/logistics/dashboard");
     } catch (err: any) {
       setError("Login failed: " + err.message);
     }
@@ -25,43 +24,39 @@ export default function LogisticsLogin() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-gray-50">
-      <h1 className="text-2xl font-bold text-green-700 mb-6">
-        Logistics Login
+      <h1 className="text-2xl font-bold text-green-700 mb-2">
+        Logistics Manager Login
       </h1>
+      <p className="text-gray-500 mb-6">Sign in to access Logistics Management System</p>
 
       <div className="w-full max-w-sm bg-white p-6 rounded-lg shadow-md">
-        <label className="block mb-2 text-sm font-medium text-gray-700">
-          Email
-        </label>
+        <label className="block mb-2 text-sm font-medium text-gray-700">Email</label>
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full mb-4 p-2 border border-gray-300 rounded"
+          className="w-full mb-4 p-2 border border-gray-300 rounded text-gray-900"
           placeholder="Enter email"
         />
-
-        <label className="block mb-2 text-sm font-medium text-gray-700">
-          Password
-        </label>
+        <label className="block mb-2 text-sm font-medium text-gray-700">Password</label>
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full mb-4 p-2 border border-gray-300 rounded"
+          className="w-full mb-4 p-2 border border-gray-300 rounded text-gray-900"
           placeholder="Enter password"
         />
-
-        {error && (
-          <p className="text-red-600 text-sm mb-4">{error}</p>
-        )}
-
+        {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
         <button
           onClick={handleLogin}
-          className="w-full bg-green-700 text-white p-2 rounded hover:bg-green-800"
+          className="w-full bg-green-700 text-white p-2 rounded hover:bg-green-800 font-bold"
         >
-          Login
+          Login as Logistics Manager
         </button>
+<p className="text-sm text-gray-500 text-center mt-3">
+          Don&apos;t have an account?{" "}
+          <a href="/logistics/signup" className="text-green-700 font-medium hover:underline">Sign up</a>
+        </p>
       </div>
     </main>
   );
